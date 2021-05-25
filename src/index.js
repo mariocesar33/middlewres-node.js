@@ -12,13 +12,13 @@ const users = [];
 function checksExistsUserAccount(request, response, next) {
   const { username } = request.headers;
 
-  const user = users.find( user => user.username = username);
+  const userExists = users.some(user => user.username === username);
 
-  if (!user) {
-    return response.status(404).json({ error: "usuário não existe"})
-  } 
-  request.user = user;
+  if (!userExists) {
+    return response.status(404).json({ error: "Usuário não exist!" });
+  }
 
+  request.user = users.find(user => user.username === username);
   return next();
 }
 
@@ -38,8 +38,8 @@ function checksTodoExists(request, response, next) {
   const { username } = request.headers;
   const { id } = request.params;
 
-  const user = users.filter(user => user.username === username)[0];
-  const todo = user?.todos.filter(todo => todo.id === id)[0];
+  const user = users.find(user => user.username === username);
+  const todo = user?.todos.find(todo => todo.id === id);
 
   const userExists = users.some(user => user.username === username);
   const isUuid = validate(id);
@@ -61,7 +61,18 @@ function checksTodoExists(request, response, next) {
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userExists = users.find(user => user.id === id);
+
+  if (userExists === undefined || !userExists) {
+    return response.status(404);
+  }
+
+  if (userExists) {
+    request.user = userExists;
+    return next();
+  }
 }
 
 app.post('/users', (request, response) => {
