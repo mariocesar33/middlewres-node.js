@@ -10,15 +10,54 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const user = users.find( user => user.username = username);
+
+  if (!user) {
+    return response.status(404).json({ error: "usuário não existe"})
+  } 
+  request.user = user;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if ((!user.pro && user.todos.length < 10) || user.pro) {
+    return next();
+  }
+
+  if (!user.pro && user.todos.length === 10) {
+    return response.status(403).json({ error: "Ocorreu um erro" });
+  }
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.filter(user => user.username === username)[0];
+  const todo = user?.todos.filter(todo => todo.id === id)[0];
+
+  const userExists = users.some(user => user.username === username);
+  const isUuid = validate(id);
+  const isUserTodo = user?.todos.some(todo => todo.id === id);
+
+  if (!isUuid) {
+    return response.status(400).json({ error: "UUID não é valido" });
+  }
+
+  if (!userExists || !isUserTodo) {
+    return response.status(404).json({ error: "Ocorreu um erro" });
+  }
+
+  if (userExists && isUuid && isUserTodo) {
+    request.todo = todo;
+    request.user = user;
+    return next();
+  }
 }
 
 function findUserById(request, response, next) {
